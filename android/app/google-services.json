@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "790794663146",
+    "project_id": "mynotes-app-learning",
+    "storage_bucket": "mynotes-app-learning.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:790794663146:android:c755d54065d5436871d393",
+        "android_client_info": {
+          "package_name": "com.flutter.tutorial.mynotes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "790794663146-77mslvonnuf62khlbdakb31hb6s0te3j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7beg6F8iLh5hGqoae3BcsiWjxM4Rf9gg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "790794663146-77mslvonnuf62khlbdakb31hb6s0te3j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
