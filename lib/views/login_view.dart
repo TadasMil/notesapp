@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:mynotes/firebase_options.dart';
+import 'package:mynotes/constants/routes.dart';
+import 'package:mynotes/utilities/error_dialog.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -34,65 +34,79 @@ class _LoginViewState extends State<LoginView> {
       appBar: AppBar(
         title: const Text('Login'),
       ),
-      body: FutureBuilder(
-        future: Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        ),
-        builder: ((context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.done:
-              return Column(
-                children: [
-                  TextField(
-                    controller: _email,
-                    enableSuggestions: true,
-                    autocorrect: false,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Email',
-                    ),
-                  ),
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    enableSuggestions: false,
-                    autocorrect: false,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Password',
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final email = _email.text;
-                      final password = _password.text;
+      body: Column(
+        children: [
+          TextField(
+            controller: _email,
+            enableSuggestions: true,
+            autocorrect: false,
+            keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Email',
+            ),
+          ),
+          TextField(
+            controller: _password,
+            obscureText: true,
+            enableSuggestions: false,
+            autocorrect: false,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Password',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = _email.text;
+              final password = _password.text;
 
-                      try {
-                        final userCredential = await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
-                          email: email,
-                          password: password,
-                        );
-                        print(userCredential);
-                      } on FirebaseAuthException catch (e) {
-                        if (e.code == 'user-not-found') {
-                          print('No user found for that email.');
-                        } else if (e.code == 'wrong-password') {
-                          print('Wrong password provided for that user.');
-                        }
-                      }
-                    },
-                    child: const Text('Login'),
-                  ),
-                ],
+              try {
+                await FirebaseAuth.instance.signInWithEmailAndPassword(
+                  email: email,
+                  password: password,
+                );
+
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  notesRoute,
+                  (route) => false,
+                );
+              } on FirebaseAuthException catch (e) {
+                if (e.code == 'user-not-found') {
+                  await showErrorDialog(
+                    context,
+                    'No user found for that email.',
+                  );
+                } else if (e.code == 'wrong-password') {
+                  await showErrorDialog(
+                    context,
+                    'Wrong password provided for that user.',
+                  );
+                } else {
+                  await showErrorDialog(
+                    context,
+                    'An error occurred. Please try again.',
+                  );
+                }
+              } catch (e) {
+                await showErrorDialog(
+                  context,
+                  'An error occurred. Please try again.',
+                );
+              }
+            },
+            child: const Text('Login'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                registerRoute,
+                (route) => false,
               );
-            default:
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-          }
-        }),
+            },
+            child: const Text('Don\'t have an account? Register'),
+          ),
+        ],
       ),
     );
   }
