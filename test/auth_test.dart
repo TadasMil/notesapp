@@ -139,7 +139,11 @@ class MockAuthProvider implements AuthProvider {
     if (email == 'thed@gmail.com') throw UserNotFoundAuthException();
     if (password == 'thed123') throw UserWrongPasswordAuthException();
 
-    const user = AuthUser(isEmailVerified: false);
+    const user = AuthUser(
+      isEmailVerified: false,
+      email: 'myemail@gmail.com',
+      id: '123',
+    );
 
     _user = user;
 
@@ -165,8 +169,17 @@ class MockAuthProvider implements AuthProvider {
 
     if (user == null) throw UserNotLoggedInAuthException();
 
-    const newUser = AuthUser(isEmailVerified: true);
+    const newUser = AuthUser(
+      isEmailVerified: true,
+      email: 'myemail@gmail.com',
+      id: '123',
+    );
 
     _user = newUser;
+  }
+
+  @override
+  Future<void> sendPasswordReset({required String toEmail}) {
+    throw UnimplementedError();
   }
 }

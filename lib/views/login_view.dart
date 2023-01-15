@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:mynotes/constants/routes.dart';
 import 'package:mynotes/services/auth/auth_exceptions.dart';
-import 'package:mynotes/services/auth/auth_service.dart';
-import 'package:mynotes/utilities/error_dialog.dart';
+import 'package:mynotes/services/auth/bloc/auth_bloc.dart';
+import 'package:mynotes/services/auth/bloc/auth_events.dart';
+import 'package:mynotes/services/auth/bloc/auth_state.dart';
+import 'package:mynotes/utilities/dialogs/error_dialog.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mynotes/utilities/dialogs/loading_dialog.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -31,85 +34,80 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
-      body: Column(
-        children: [
-          TextField(
-            controller: _email,
-            enableSuggestions: true,
-            autocorrect: false,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Email',
-            ),
-          ),
-          TextField(
-            controller: _password,
-            obscureText: true,
-            enableSuggestions: false,
-            autocorrect: false,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Password',
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final email = _email.text;
-              final password = _password.text;
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) async {
+        if (state is AuthStateLoggedOut) {
+          if (state.exception is UserNotFoundAuthException ||
+              state.exception is UserWrongPasswordAuthException) {
+            await showErrorDialog(
+              context,
+              'User not found. Please try again.',
+            );
+          } else if (state.exception is GenericAuthException) {
+            await showErrorDialog(
+              context,
+              'An error occurred. Please try again.',
+            );
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Login'),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              TextField(
+                controller: _email,
+                enableSuggestions: true,
+                autocorrect: false,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Email',
+                ),
+              ),
+              TextField(
+                controller: _password,
+                obscureText: true,
+                enableSuggestions: false,
+                autocorrect: false,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Password',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final email = _email.text;
+                  final password = _password.text;
 
-              try {
-                await AuthService.firebase().logIn(
-                  email: email,
-                  password: password,
-                );
-
-                final user = AuthService.firebase().currentUser;
-
-                if (user?.isEmailVerified ?? false) {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    notesRoute,
-                    (route) => false,
-                  );
-                } else {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    verifyEmailRoute,
-                    (route) => false,
-                  );
-                }
-              } on UserNotFoundAuthException {
-                await showErrorDialog(
-                  context,
-                  'No user found for that email.',
-                );
-              } on UserWrongPasswordAuthException {
-                await showErrorDialog(
-                  context,
-                  'Wrong password provided for that user.',
-                );
-              } on GenericAuthException {
-                await showErrorDialog(
-                  context,
-                  'An error occurred. Please try again.',
-                );
-              }
-            },
-            child: const Text('Login'),
+                  context.read<AuthBloc>().add(
+                        AuthEventLogin(
+                          email,
+                          password,
+                        ),
+                      );
+                },
+                child: const Text('Login'),
+              ),
+              TextButton(
+                onPressed: () {
+                  context.read<AuthBloc>().add(const AuthEventShouldRegister());
+                },
+                child: const Text('Don\'t have an account? Register'),
+              ),
+              TextButton(
+                onPressed: () {
+                  context.read<AuthBloc>().add(const AuthEventForgotPassword());
+                },
+                child: const Text('Forgot password? Reset it.'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                registerRoute,
-                (route) => false,
-              );
-            },
-            child: const Text('Don\'t have an account? Register'),
-          ),
-        ],
+        ),
       ),
     );
   }
